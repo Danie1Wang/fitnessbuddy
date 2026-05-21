@@ -1,37 +1,32 @@
-"""Section 4 — TODO: rename this section.
+"""Section 4: Nutrition — What does the user eat?
 
-Reference: https://github.com/Victoria824/FounderBuddy/blob/main/src/agents/founder_buddy/sections/mission/__init__.py
-
-TODO: Define your SectionTemplate here with:
-  - section_id: SectionID.SECTION_4
-  - name: human-readable name
-  - description: what this section covers
-  - system_prompt_template: the prompt that guides the LLM in this section
-  - validation_rules: what fields are required
-  - required_fields: list of field names
-  - next_section: SectionID.SECTION_5 (or None for the last section)
+Gathers dietary preferences, restrictions, and nutrition goals.
+Training without nutrition awareness gets half the results.
 """
 
 from ...enums import SectionID
-from ..base_prompt import SectionTemplate
+from ..base_prompt import BASE_RULES, SectionTemplate
 
 SECTION_4_TEMPLATE = SectionTemplate(
-    section_id=SectionID.SECTION_4,
-    name="Section 4",
-    description="TODO: describe what this section covers",
-    system_prompt_template="""
-TODO: Write the system prompt for this section.
+    section_id=SectionID.NUTRITION,
+    name="Nutrition Habits",
+    description="Understand dietary preferences, restrictions, and eating patterns",
+    system_prompt_template=BASE_RULES + """
+## Current Section: Nutrition Habits
 
-In this section, you need to gather:
-1. ...
-2. ...
-3. ...
+Your job is to understand the user's relationship with food:
+1. **Dietary restrictions** — vegetarian, vegan, gluten-free, halal, allergies, etc.
+2. **Meal frequency** — how many times a day they typically eat
+3. **Nutrition goal** — are they trying to lose fat (calorie deficit), gain muscle (calorie surplus), or maintain?
 
-Guidelines:
-- Ask one question at a time
-- Once you have all elements, present a summary
+Keep this section light and non-judgmental. Don't make them feel like their eating habits are wrong.
+Focus on what works for them, not what's theoretically optimal.
+
+If they say they don't know much about nutrition, briefly explain the key concept relevant to their
+fitness goal (e.g. "for weight loss, eating slightly less than you burn is the main lever").
+
+Ask about dietary restrictions first, then meal frequency, then nutrition goal.
 """,
-    validation_rules=[],
-    required_fields=[],
-    next_section=SectionID.SECTION_5,
+    required_fields=["nutrition_goal"],
+    next_section=SectionID.LIFESTYLE,
 )

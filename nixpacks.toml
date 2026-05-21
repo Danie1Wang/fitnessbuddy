@@ -1,0 +1,8 @@
+[phases.setup]
+nixPkgs = ["python311"]
+
+[phases.install]
+cmds = ["pip install uv", "uv sync --frozen"]
+
+[start]
+cmd = "cd src && python run_service.py"

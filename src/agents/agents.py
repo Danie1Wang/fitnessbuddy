@@ -19,7 +19,7 @@ class Agent:
 
 agents: dict[str, Agent] = {
     "xbuddy": Agent(
-        description="TODO: describe your XBuddy agent",
+        description="FitnessBuddy — guides users through 5 sections (goals, fitness, schedule, nutrition, lifestyle) to produce a personalised training program.",
         graph=xbuddy_agent,
     ),
 }

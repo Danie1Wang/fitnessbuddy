@@ -40,7 +40,7 @@ class LLMConfig:
     🛠️ MODIFY THESE 4 VALUES TO CONTROL YOUR ENTIRE AI SYSTEM:
     """
     
-    DEFAULT_MODEL: AllModelEnum = OpenAIModelName.GPT_4O  # Which model to use
+    DEFAULT_MODEL: AllModelEnum = AnthropicModelName.SONNET_35  # Which model to use
     DEFAULT_TEMPERATURE: float = 0.0                      # 0.0=deterministic, 1.0=creative  
     DEFAULT_MAX_TOKENS: int = 3000                        # Max response length
     DEFAULT_TOP_P: float = 0.9                           # Sampling diversity
@@ -161,7 +161,13 @@ def get_model(model_name: AllModelEnum | None = None, /) -> ModelT:
             openai_api_key=settings.DEEPSEEK_API_KEY,
         )
     if model_name in AnthropicModelName:
-        return ChatAnthropic(model=api_model_name, temperature=temperature, max_tokens=max_tokens, streaming=True)
+        return ChatAnthropic(
+            model=api_model_name,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            streaming=True,
+            api_key=settings.ANTHROPIC_API_KEY.get_secret_value() if settings.ANTHROPIC_API_KEY else None,
+        )
     if model_name in GoogleModelName:
         return ChatGoogleGenerativeAI(model=api_model_name, temperature=temperature, max_tokens=max_tokens, streaming=True)
     if model_name in VertexAIModelName:

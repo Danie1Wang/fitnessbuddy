@@ -9,6 +9,9 @@ rules for the current section.
 
 from langchain_core.tools import tool
 
+from .enums import SectionID
+from .prompts import get_section_template
+
 
 @tool
 async def get_context(
@@ -19,7 +22,16 @@ async def get_context(
 ) -> dict:
     """Load context packet for a section.
 
-    Returns a dict with: section_id, status, system_prompt, draft, validation_rules
+    Returns a dict with: section_id, status, system_prompt, draft, validation_rules.
+    The router calls this to get the system prompt for the current section.
     """
-    # TODO: Implement — load section template, check existing state in DB
-    raise NotImplementedError("Implement get_context tool")
+    section_enum = SectionID(section_id)
+    template = get_section_template(section_enum)
+
+    return {
+        "section_id": section_id,
+        "status": "in_progress",
+        "system_prompt": template.system_prompt_template,
+        "draft": None,
+        "validation_rules": [r.model_dump() for r in template.validation_rules],
+    }

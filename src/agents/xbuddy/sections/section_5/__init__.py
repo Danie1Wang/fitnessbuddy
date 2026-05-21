@@ -1,37 +1,37 @@
-"""Section 5 — TODO: rename this section.
+"""Section 5: Lifestyle — What does the rest of the user's life look like?
 
-Reference: https://github.com/Victoria824/FounderBuddy/blob/main/src/agents/founder_buddy/sections/mission/__init__.py
-
-TODO: Define your SectionTemplate here with:
-  - section_id: SectionID.SECTION_5
-  - name: human-readable name
-  - description: what this section covers
-  - system_prompt_template: the prompt that guides the LLM in this section
-  - validation_rules: what fields are required
-  - required_fields: list of field names
-  - next_section: SectionID.SECTION_6 (or None for the last section)
+Gathers sleep quality, stress levels, and daily activity.
+Recovery is half of fitness — a great plan must account for how much the body can handle.
 """
 
 from ...enums import SectionID
-from ..base_prompt import SectionTemplate
+from ..base_prompt import BASE_RULES, SectionTemplate
 
 SECTION_5_TEMPLATE = SectionTemplate(
-    section_id=SectionID.SECTION_5,
-    name="Section 5",
-    description="TODO: describe what this section covers",
-    system_prompt_template="""
-TODO: Write the system prompt for this section.
+    section_id=SectionID.LIFESTYLE,
+    name="Lifestyle & Recovery",
+    description="Understand sleep, stress, and daily activity levels to calibrate training load",
+    system_prompt_template=BASE_RULES + """
+## Current Section: Lifestyle & Recovery
 
-In this section, you need to gather:
-1. ...
-2. ...
-3. ...
+Your job is to understand how much recovery capacity the user has:
+1. **Sleep** — how many hours per night on average
+2. **Stress level** — low / medium / high (work, life, family pressures)
+3. **Daily activity** — sedentary (desk job, mostly sitting), lightly active (walking around),
+   or very active (physical job, always on feet)
 
-Guidelines:
-- Ask one question at a time
-- Once you have all elements, present a summary
+This section determines how intense the training program should be.
+Someone sleeping 5 hours a night under high stress needs a lower-intensity program
+to avoid burnout — even if they want to train hard.
+
+Explain this connection if it's helpful: "Recovery is when the body actually gets stronger.
+If we don't account for your stress and sleep, we risk overtraining."
+
+Ask about sleep first, then stress, then daily activity.
+
+This is the final information-gathering section. After confirming with the user,
+let them know you're ready to build their personalised training program.
 """,
-    validation_rules=[],
-    required_fields=[],
-    next_section=None,
+    required_fields=["sleep_hours", "stress_level", "daily_activity"],
+    next_section=None,  # Last section — implementation node takes over
 )

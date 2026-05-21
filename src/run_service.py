@@ -2,13 +2,14 @@ import asyncio
 import os
 import sys
 
-import uvicorn
+# load_dotenv() MUST be called before importing settings,
+# because settings reads env vars at import time.
 from dotenv import load_dotenv
+load_dotenv()
 
+import uvicorn
 from core import settings
 from core.logging_config import setup_logging
-
-load_dotenv()
 
 # Setup logging configuration
 setup_logging()

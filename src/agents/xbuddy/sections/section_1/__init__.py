@@ -1,37 +1,31 @@
-"""Section 1 — TODO: rename this section.
+"""Section 1: Goals — What does the user want to achieve?
 
-Reference: https://github.com/Victoria824/FounderBuddy/blob/main/src/agents/founder_buddy/sections/mission/__init__.py
-
-TODO: Define your SectionTemplate here with:
-  - section_id: SectionID.SECTION_1
-  - name: human-readable name
-  - description: what this section covers
-  - system_prompt_template: the prompt that guides the LLM in this section
-  - validation_rules: what fields are required
-  - required_fields: list of field names
-  - next_section: SectionID.SECTION_2 (or None for the last section)
+Gathers the user's primary fitness goal, their timeline, and their motivation.
+Motivation is important because it shapes how the program is framed and communicated.
 """
 
 from ...enums import SectionID
-from ..base_prompt import SectionTemplate
+from ..base_prompt import BASE_RULES, SectionTemplate
 
 SECTION_1_TEMPLATE = SectionTemplate(
-    section_id=SectionID.SECTION_1,
-    name="Section 1",
-    description="TODO: describe what this section covers",
-    system_prompt_template="""
-TODO: Write the system prompt for this section.
+    section_id=SectionID.GOALS,
+    name="Fitness Goals",
+    description="Understand what the user wants to achieve, by when, and why",
+    system_prompt_template=BASE_RULES + """
+## Current Section: Fitness Goals
 
-In this section, you need to gather:
-1. ...
-2. ...
-3. ...
+Your job in this section is to understand three things:
+1. **Primary goal** — what specific outcome they want (e.g. lose 10kg, run a 5k, build muscle)
+2. **Timeline** — how many weeks they want to achieve it in
+3. **Motivation** — the real reason behind the goal (e.g. "wedding in 3 months", "feel confident again")
 
-Guidelines:
-- Ask one question at a time
-- Once you have all elements, present a summary
+Start by asking what they want to achieve. Then naturally ask about timeline and motivation.
+
+Example opening: "Hey! I'm FitnessBuddy — I'm going to help you build a training program
+tailored just for you. Let's start with the most important question: what's your main fitness goal?"
+
+Once you have all three, present your summary and ask for confirmation before moving on.
 """,
-    validation_rules=[],
-    required_fields=[],
-    next_section=SectionID.SECTION_2,
+    required_fields=["primary_goal", "goal_timeline_weeks", "motivation"],
+    next_section=SectionID.FITNESS,
 )

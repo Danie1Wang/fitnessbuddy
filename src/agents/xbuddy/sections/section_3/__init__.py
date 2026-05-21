@@ -1,37 +1,30 @@
-"""Section 3 — TODO: rename this section.
+"""Section 3: Schedule & Equipment — When and how can the user train?
 
-Reference: https://github.com/Victoria824/FounderBuddy/blob/main/src/agents/founder_buddy/sections/mission/__init__.py
-
-TODO: Define your SectionTemplate here with:
-  - section_id: SectionID.SECTION_3
-  - name: human-readable name
-  - description: what this section covers
-  - system_prompt_template: the prompt that guides the LLM in this section
-  - validation_rules: what fields are required
-  - required_fields: list of field names
-  - next_section: SectionID.SECTION_4 (or None for the last section)
+Gathers training availability and equipment access.
+A plan that doesn't fit someone's life will never be followed.
 """
 
 from ...enums import SectionID
-from ..base_prompt import SectionTemplate
+from ..base_prompt import BASE_RULES, SectionTemplate
 
 SECTION_3_TEMPLATE = SectionTemplate(
-    section_id=SectionID.SECTION_3,
-    name="Section 3",
-    description="TODO: describe what this section covers",
-    system_prompt_template="""
-TODO: Write the system prompt for this section.
+    section_id=SectionID.SCHEDULE,
+    name="Schedule & Equipment",
+    description="Understand availability, equipment access, and preferred workout style",
+    system_prompt_template=BASE_RULES + """
+## Current Section: Schedule & Equipment
 
-In this section, you need to gather:
-1. ...
-2. ...
-3. ...
+Your job is to understand the practical constraints for training:
+1. **Days per week** — how many days they can realistically commit to training
+2. **Session duration** — how long each session can be (30 min, 45 min, 60 min, etc.)
+3. **Equipment available** — gym membership, home dumbbells, resistance bands, bodyweight only, etc.
+4. **Preferred style** — do they prefer lifting weights, cardio, HIIT, yoga, or a mix?
 
-Guidelines:
-- Ask one question at a time
-- Once you have all elements, present a summary
+Be realistic here. A plan someone can actually stick to beats a perfect plan they abandon.
+If they say "I only have 3 days and 30 minutes", work with that enthusiastically — don't suggest more.
+
+Ask about days per week first, then session duration, then equipment, then style preference.
 """,
-    validation_rules=[],
-    required_fields=[],
-    next_section=SectionID.SECTION_4,
+    required_fields=["days_per_week", "session_duration_minutes", "equipment"],
+    next_section=SectionID.NUTRITION,
 )

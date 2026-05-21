@@ -1,8 +1,8 @@
 from enum import StrEnum
 from json import loads
+from pathlib import Path
 from typing import Annotated, Any
 
-from dotenv import find_dotenv
 from pydantic import (
     BeforeValidator,
     Field,
@@ -42,9 +42,13 @@ def check_str_is_http(x: str) -> str:
     return str(http_url_adapter.validate_python(x))
 
 
+# settings.py is at src/core/settings.py → go up 3 levels to reach project root
+_ENV_FILE = Path(__file__).parent.parent.parent / ".env"
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=find_dotenv(),
+        env_file=str(_ENV_FILE),
         env_file_encoding="utf-8",
         env_ignore_empty=True,
         extra="ignore",

@@ -41,18 +41,18 @@ def test_create_ai_message_filters_and_passes_through(parts, expected):
         assert getattr(msg, key) == val
 
 
-def test_create_ai_message_missing_required_content_raises():
+def test_create_ai_message_missing_content_defaults_to_empty():
     """
-    AIMessage requires 'content'; if missing, _create_ai_message should
-    bubble up the TypeError from the constructor.
+    _create_ai_message defaults content to "" when missing,
+    so the stream never crashes on an internal message without content.
     """
-    with pytest.raises(TypeError):
-        _create_ai_message({"tool_calls": []})
+    msg = _create_ai_message({"tool_calls": []})
+    assert msg.content == ""
 
 
-def test_create_ai_message_empty_dict_raises():
+def test_create_ai_message_empty_dict_defaults_to_empty():
     """
-    Completely empty parts should also fail to construct an AIMessage.
+    Completely empty parts produce an AIMessage with empty content.
     """
-    with pytest.raises(TypeError):
-        _create_ai_message({})
+    msg = _create_ai_message({})
+    assert msg.content == ""

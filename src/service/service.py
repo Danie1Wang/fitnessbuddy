@@ -21,14 +21,19 @@ from langchain_core._api import LangChainBetaWarning
 from langchain_core.messages import AIMessage, AIMessageChunk, AnyMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
 from langfuse import Langfuse  # type: ignore[import-untyped]
-from langfuse.callback import CallbackHandler  # type: ignore[import-untyped]
+from langfuse.langchain import CallbackHandler  # type: ignore[import-untyped]
 from langgraph.types import Command, Interrupt
 from langsmith import Client as LangsmithClient
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from agents import DEFAULT_AGENT, AgentGraph, get_agent, get_all_agent_info
-# TODO: import your agent initialization
-# TODO: import your section templates
+from agents.xbuddy.enums import SectionID
+from agents.xbuddy.models import XBuddyData, XBuddyState
+from agents.xbuddy.sections.section_1 import SECTION_1_TEMPLATE
+from agents.xbuddy.sections.section_2 import SECTION_2_TEMPLATE
+from agents.xbuddy.sections.section_3 import SECTION_3_TEMPLATE
+from agents.xbuddy.sections.section_4 import SECTION_4_TEMPLATE
+from agents.xbuddy.sections.section_5 import SECTION_5_TEMPLATE
 from core import settings
 from core.settings import DatabaseType
 # Removed: # DentApp (removed) integration
@@ -53,6 +58,44 @@ from service.utils import (
 
 warnings.filterwarnings("ignore", category=LangChainBetaWarning)
 logger = get_logger(__name__)
+
+# --- FitnessBuddy section templates (used by invoke/stream to return section metadata) ---
+FOUNDER_BUDDY_TEMPLATES = {
+    SectionID.GOALS.value: SECTION_1_TEMPLATE,
+    SectionID.FITNESS.value: SECTION_2_TEMPLATE,
+    SectionID.SCHEDULE.value: SECTION_3_TEMPLATE,
+    SectionID.NUTRITION.value: SECTION_4_TEMPLATE,
+    SectionID.LIFESTYLE.value: SECTION_5_TEMPLATE,
+}
+
+# Maps section string IDs to database integer IDs
+SECTION_ID_MAPPING: dict[str, int] = {
+    SectionID.GOALS.value: 1,
+    SectionID.FITNESS.value: 2,
+    SectionID.SCHEDULE.value: 3,
+    SectionID.NUTRITION.value: 4,
+    SectionID.LIFESTYLE.value: 5,
+}
+
+_REVERSE_SECTION_ID_MAPPING: dict[int, str] = {v: k for k, v in SECTION_ID_MAPPING.items()}
+
+
+def get_section_string_id(section_id: int) -> str | None:
+    """Convert integer section DB ID to string section ID (e.g. 1 -> 'goals')."""
+    return _REVERSE_SECTION_ID_MAPPING.get(section_id)
+
+
+async def initialize_xbuddy_state(user_id: int) -> dict:
+    """Create initial state for a brand-new FitnessBuddy conversation."""
+    import uuid
+    from agents.xbuddy.enums import RouterDirective
+    return {
+        "user_id": user_id,
+        "thread_id": str(uuid.uuid4()),
+        "current_section": SectionID.GOALS,
+        "router_directive": RouterDirective.NEXT,
+        "user_data": XBuddyData(),
+    }
 
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
@@ -291,7 +334,7 @@ async def _handle_input(user_input: UserInput, agent: AgentGraph, agent_id: str)
     """
     run_id = uuid4()
     thread_id = user_input.thread_id
-    user_id = user_input.user_id
+    user_id = user_input.user_id or 1
 
     callbacks = []
     if settings.LANGFUSE_TRACING:
@@ -304,7 +347,8 @@ async def _handle_input(user_input: UserInput, agent: AgentGraph, agent_id: str)
         if agent_id == "xbuddy":
             initial_state = await initialize_xbuddy_state(user_id=user_id)
         else:
-            raise ValueError(f"Unknown agent: {agent_id}")
+            import uuid as _uuid
+            initial_state = {"user_id": user_id, "thread_id": str(_uuid.uuid4())}
 
         # Get the generated thread_id from initial_state
         # For dict-like states, use .get(), for Pydantic models use direct access

@@ -9,7 +9,7 @@ from langgraph.types import Interrupt
 
 from agents.agents import Agent
 from core.models import OpenAIModelName
-from schema import ChatHistory, ChatMessage, ServiceMetadata
+from schema import ChatHistory, ChatMessage, InvokeResponse, ServiceMetadata
 
 
 def test_invoke(test_client, mock_agent) -> None:
@@ -24,9 +24,9 @@ def test_invoke(test_client, mock_agent) -> None:
     input_message = mock_agent.ainvoke.await_args.kwargs["input"]["messages"][0]
     assert input_message.content == QUESTION
 
-    output = ChatMessage.model_validate(response.json())
-    assert output.type == "ai"
-    assert output.content == ANSWER
+    invoke_resp = InvokeResponse.model_validate(response.json())
+    assert invoke_resp.output.type == "ai"
+    assert invoke_resp.output.content == ANSWER
 
 
 def test_invoke_custom_agent(test_client, mock_agent) -> None:
@@ -62,35 +62,25 @@ def test_invoke_custom_agent(test_client, mock_agent) -> None:
         input_message = mock_agent.ainvoke.await_args.kwargs["input"]["messages"][0]
         assert input_message.content == QUESTION
 
-        output = ChatMessage.model_validate(response.json())
+        output = InvokeResponse.model_validate(response.json()).output
         assert output.type == "ai"
         assert output.content == CUSTOM_ANSWER  # Verify we got the custom agent's response
 
 
 def test_invoke_model_param(test_client, mock_agent) -> None:
-    """Test that the model parameter is correctly passed to the agent."""
+    """Model selection is server-managed; extra fields in the request are ignored."""
     QUESTION = "What is the weather in Tokyo?"
     ANSWER = "The weather in Tokyo is sunny."
-    CUSTOM_MODEL = "claude-3.5-sonnet"
     mock_agent.ainvoke.return_value = [("values", {"messages": [AIMessage(content=ANSWER)]})]
 
-    response = test_client.post("/invoke", json={"message": QUESTION, "model": CUSTOM_MODEL})
+    # Extra fields (like "model") are silently ignored by the UserInput schema
+    response = test_client.post("/invoke", json={"message": QUESTION, "model": "gpt-4o"})
     assert response.status_code == 200
 
-    # Verify the model was passed correctly in the config
-    mock_agent.ainvoke.assert_awaited_once()
-    config = mock_agent.ainvoke.await_args.kwargs["config"]
-    assert config["configurable"]["model"] == CUSTOM_MODEL
-
-    # Verify the response is still correct
-    output = ChatMessage.model_validate(response.json())
+    # Verify the response is correct
+    output = InvokeResponse.model_validate(response.json()).output
     assert output.type == "ai"
     assert output.content == ANSWER
-
-    # Verify an invalid model throws a validation error
-    INVALID_MODEL = "gpt-7-notreal"
-    response = test_client.post("/invoke", json={"message": QUESTION, "model": INVALID_MODEL})
-    assert response.status_code == 422
 
 
 def test_invoke_custom_agent_config(test_client, mock_agent) -> None:
@@ -113,7 +103,7 @@ def test_invoke_custom_agent_config(test_client, mock_agent) -> None:
     assert config["configurable"]["additional_param"] == "value_foo"
 
     # Verify the response is still correct
-    output = ChatMessage.model_validate(response.json())
+    output = InvokeResponse.model_validate(response.json()).output
     assert output.type == "ai"
     assert output.content == ANSWER
 
@@ -141,7 +131,7 @@ def test_invoke_interrupt(test_client, mock_agent) -> None:
     input_message = mock_agent.ainvoke.await_args.kwargs["input"]["messages"][0]
     assert input_message.content == QUESTION
 
-    output = ChatMessage.model_validate(response.json())
+    output = InvokeResponse.model_validate(response.json()).output
     assert output.type == "ai"
     assert output.content == INTERRUPT
 
@@ -341,17 +331,16 @@ def test_info(test_client, mock_settings) -> None:
 
     base_agent = Agent(description="A base agent.", graph=None)
     mock_settings.AUTH_SECRET = None
-    mock_settings.DEFAULT_MODEL = OpenAIModelName.GPT_4O_MINI
-    mock_settings.AVAILABLE_MODELS = {OpenAIModelName.GPT_4O_MINI, OpenAIModelName.GPT_4O}
     with patch.dict("agents.agents.agents", {"base-agent": base_agent}, clear=True):
         response = test_client.get("/info")
         assert response.status_code == 200
         output = ServiceMetadata.model_validate(response.json())
 
-    assert output.default_agent == "research-assistant"
+    assert output.default_agent == "xbuddy"
     assert len(output.agents) == 1
     assert output.agents[0].key == "base-agent"
     assert output.agents[0].description == "A base agent."
 
-    assert output.default_model == OpenAIModelName.GPT_4O_MINI
-    assert output.models == [OpenAIModelName.GPT_4O, OpenAIModelName.GPT_4O_MINI]
+    # Models are server-managed (not user-selectable) so these are always empty
+    assert output.default_model is None
+    assert output.models == []

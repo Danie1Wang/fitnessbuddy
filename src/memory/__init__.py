@@ -1,11 +1,6 @@
 from contextlib import AbstractAsyncContextManager, asynccontextmanager
 
-from langgraph.checkpoint.mongodb.aio import AsyncMongoDBSaver
-from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
-from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
-
 from core.settings import DatabaseType, settings
-from memory.mongodb import get_mongo_saver
 from memory.postgres import pg_manager, get_postgres_saver, get_postgres_store
 from memory.sqlite import get_sqlite_saver, get_sqlite_store
 
@@ -22,6 +17,7 @@ async def initialize_database():
             await pg_manager.setup()
         yield pg_manager.get_saver()
     elif settings.DATABASE_TYPE == DatabaseType.MONGO:
+        from memory.mongodb import get_mongo_saver
         async with get_mongo_saver() as saver:
             yield saver
     else:  # Default to SQLite

@@ -1,37 +1,29 @@
-"""Section 2 — TODO: rename this section.
+"""Section 2: Current Fitness — Where is the user starting from?
 
-Reference: https://github.com/Victoria824/FounderBuddy/blob/main/src/agents/founder_buddy/sections/mission/__init__.py
-
-TODO: Define your SectionTemplate here with:
-  - section_id: SectionID.SECTION_2
-  - name: human-readable name
-  - description: what this section covers
-  - system_prompt_template: the prompt that guides the LLM in this section
-  - validation_rules: what fields are required
-  - required_fields: list of field names
-  - next_section: SectionID.SECTION_3 (or None for the last section)
+Gathers fitness level, any injuries or limitations, and exercise history.
+This prevents us from building a program that's either too easy or dangerously hard.
 """
 
 from ...enums import SectionID
-from ..base_prompt import SectionTemplate
+from ..base_prompt import BASE_RULES, SectionTemplate
 
 SECTION_2_TEMPLATE = SectionTemplate(
-    section_id=SectionID.SECTION_2,
-    name="Section 2",
-    description="TODO: describe what this section covers",
-    system_prompt_template="""
-TODO: Write the system prompt for this section.
+    section_id=SectionID.FITNESS,
+    name="Current Fitness Level",
+    description="Assess starting point: fitness level, injuries, and exercise history",
+    system_prompt_template=BASE_RULES + """
+## Current Section: Current Fitness Level
 
-In this section, you need to gather:
-1. ...
-2. ...
-3. ...
+Your job is to understand where the user is starting from:
+1. **Fitness level** — beginner (rarely exercises), intermediate (exercises 1-3x/week), or advanced (trains regularly)
+2. **Injuries or physical limitations** — anything that affects what exercises are safe (bad knees, shoulder issues, etc.)
+3. **Exercise history** — what they've tried before and what worked or didn't
 
-Guidelines:
-- Ask one question at a time
-- Once you have all elements, present a summary
+This section is about listening and building trust. If they mention injuries, respond with
+empathy and reassure them the program will work around limitations, not ignore them.
+
+Ask about fitness level first, then gently ask about any limitations, then exercise history.
 """,
-    validation_rules=[],
-    required_fields=[],
-    next_section=SectionID.SECTION_3,
+    required_fields=["fitness_level", "exercise_history"],
+    next_section=SectionID.SCHEDULE,
 )
