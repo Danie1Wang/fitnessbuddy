@@ -2,7 +2,14 @@
 nixPkgs = ["python311Full"]
 
 [phases.install]
-cmds = ["curl -LsSf https://astral.sh/uv/install.sh | sh", "export PATH=\"$HOME/.local/bin:$PATH\"", "uv sync"]
+# 1. install uv (for lock-file export only)
+# 2. export pinned deps from uv.lock → requirements.txt
+# 3. pip installs into Nixpacks' /opt/venv (where the runtime python lives)
+cmds = [
+  "pip install uv",
+  "uv export --frozen --no-dev -o requirements.txt",
+  "pip install -r requirements.txt"
+]
 
 [start]
 cmd = "cd src && python run_service.py"
