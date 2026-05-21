@@ -10,6 +10,8 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: "3.11.0"
+      - key: UV_SYSTEM_PYTHON
+        value: "1"
       - key: DATABASE_TYPE
         value: sqlite
       - key: SQLITE_DB_PATH
