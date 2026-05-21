@@ -2,7 +2,7 @@
 nixPkgs = ["python311Full"]
 
 [phases.install]
-cmds = ["pip install uv", "uv sync"]
+cmds = ["curl -LsSf https://astral.sh/uv/install.sh | sh", "export PATH=\"$HOME/.local/bin:$PATH\"", "uv sync"]
 
 [start]
 cmd = "cd src && python run_service.py"
