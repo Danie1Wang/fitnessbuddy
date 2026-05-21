@@ -4,7 +4,7 @@ services:
     runtime: python
     region: oregon
     plan: free
-    buildCommand: pip install uv && uv export --frozen --no-dev -o requirements.txt && pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt
     startCommand: cd src && python run_service.py
     healthCheckPath: /health
     envVars:
